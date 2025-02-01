@@ -1,21 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Drawing;
 using NAudio.Wave;
+using TagLib;
+
 
 namespace Music_App_for_Prelim
 {
     public partial class Form1 : Form
     {
         private WaveOutEvent outputDevice;
-        private List<AudioFileReader> playlist;
+        private List<string> filePaths = new List<string>(); // Store file paths
+        private List<AudioFileReader> playlist = new List<AudioFileReader>();
         private int currentTrackIndex = 0;
 
         public Form1()
         {
             InitializeComponent();
-            playlist = new List<AudioFileReader>();
             listBoxSongs.HorizontalScrollbar = true;
         }
 
@@ -23,7 +27,7 @@ namespace Music_App_for_Prelim
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Audio Files|*.mp3;*.wav;*.wma;*.aac;*.m4a",
+                Filter = "Audio/Video Files|*.mp3;*.wav;*.wma;*.aac;*.m4a;*.mp4",
                 Multiselect = true
             };
 
@@ -31,14 +35,21 @@ namespace Music_App_for_Prelim
             {
                 foreach (string file in openFileDialog.FileNames)
                 {
-                    string fileName = System.IO.Path.GetFileName(file);
+                    string fileName = Path.GetFileName(file);
                     string trimmedFileName = TrimText(fileName, 40);
 
-                  
-                    if (!listBoxSongs.Items.Contains(trimmedFileName))
+                    if (!filePaths.Contains(file))
                     {
-                        playlist.Add(new AudioFileReader(file));
-                        listBoxSongs.Items.Add(trimmedFileName); 
+                        try
+                        {
+                            playlist.Add(new AudioFileReader(file));
+                            filePaths.Add(file);
+                            listBoxSongs.Items.Add(trimmedFileName);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Invalid File Format. Please open an audio or video file!","Error",MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
                     }
                     else
                     {
@@ -55,8 +66,16 @@ namespace Music_App_for_Prelim
 
         private void PlayTrack(int index)
         {
-            if (index >= 0 && index < playlist.Count)
+            if (index >= 0 && index < filePaths.Count)
             {
+                string filePath = filePaths[index];
+
+                if (filePath.EndsWith(".mp4")) // Handle video playback
+                {
+                    PlayVideo(filePath);
+                    return;
+                }
+
                 if (outputDevice != null)
                 {
                     outputDevice.Stop();
@@ -64,10 +83,26 @@ namespace Music_App_for_Prelim
                 }
 
                 outputDevice = new WaveOutEvent();
-                outputDevice.Init(playlist[index]);
+                AudioFileReader reader = new AudioFileReader(filePath);
+
+                if (playlist.Count > index)
+                {
+                    playlist[index]?.Dispose();
+                    playlist[index] = reader;
+                }
+
+                outputDevice.Init(reader);
                 outputDevice.Play();
+
                 lblTrack.Text = "Playing: " + listBoxSongs.Items[index].ToString();
+                LoadAlbumArt(filePath);
             }
+        }
+
+        private void PlayVideo(string filePath)
+        {
+            axWindowsMediaPlayer.URL = filePath;
+            axWindowsMediaPlayer.Ctlcontrols.play();
         }
 
         private void btnPause_Click(object sender, EventArgs e)
@@ -96,26 +131,53 @@ namespace Music_App_for_Prelim
 
         private void btnNext_Click(object sender, EventArgs e)
         {
-            if (playlist.Count == 0) return; 
-
-         
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.Count; /
-            PlayTrack(currentTrackIndex);
-
-         
+            if (filePaths.Count == 0) return;
+            currentTrackIndex = (currentTrackIndex + 1) % filePaths.Count;
             listBoxSongs.SelectedIndex = currentTrackIndex;
         }
 
         private void btnPrevious_Click(object sender, EventArgs e)
         {
-            if (playlist.Count == 0) return;
-
-           
-            currentTrackIndex = (currentTrackIndex - 1 + playlist.Count) % playlist.Count; 
-            PlayTrack(currentTrackIndex);
-
-         
+            if (filePaths.Count == 0) return;
+            currentTrackIndex = (currentTrackIndex - 1 + filePaths.Count) % filePaths.Count;
             listBoxSongs.SelectedIndex = currentTrackIndex;
+        }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void LoadAlbumArt(string filePath)
+        {
+            try
+            {
+                var file = TagLib.File.Create(filePath);
+                if (file.Tag.Pictures.Length > 0)
+                {
+                    var bin = (byte[])(file.Tag.Pictures[0].Data.Data);
+                    using (MemoryStream ms = new MemoryStream(bin))
+                    {
+                        pictureBoxAlbumArt.Image = Image.FromStream(ms);
+                    }
+                }
+                else
+                {
+                    pictureBoxAlbumArt.Image = Image.FromFile("default_album.png");
+                }
+            }
+            catch
+            {
+                string defaultAlbumPath = System.IO.Path.Combine(Application.StartupPath, "default_album.png");
+                if (System.IO.File.Exists(defaultAlbumPath))
+                {
+                    pictureBoxAlbumArt.Image = Image.FromFile(defaultAlbumPath);
+                }
+                else
+                {
+                    MessageBox.Show("Default album art not found!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private string TrimText(string text, int maxLength)
