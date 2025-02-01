@@ -21,6 +21,9 @@ namespace Music_App_for_Prelim
         {
             InitializeComponent();
             listBoxSongs.HorizontalScrollbar = true;
+            axWindowsMediaPlayer.Visible = false; 
+            pictureBoxAlbumArt.SizeMode = PictureBoxSizeMode.Zoom; 
+
         }
 
         private void btnLoad_Click(object sender, EventArgs e)
@@ -36,7 +39,7 @@ namespace Music_App_for_Prelim
                 foreach (string file in openFileDialog.FileNames)
                 {
                     string fileName = Path.GetFileName(file);
-                    string trimmedFileName = TrimText(fileName, 40);
+                
 
                     if (!filePaths.Contains(file))
                     {
@@ -44,16 +47,16 @@ namespace Music_App_for_Prelim
                         {
                             playlist.Add(new AudioFileReader(file));
                             filePaths.Add(file);
-                            listBoxSongs.Items.Add(trimmedFileName);
+                            listBoxSongs.Items.Add(fileName);
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show("Invalid File Format. Please open an audio or video file!","Error",MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            MessageBox.Show("Invalid File Format. Please open an audio or video file!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                     }
                     else
                     {
-                        MessageBox.Show($"The song '{trimmedFileName}' is already in the playlist.", "Duplicate Song", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show($"The song '{fileName}' is already in the playlist.", "Duplicate Song", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
             }
@@ -61,58 +64,27 @@ namespace Music_App_for_Prelim
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
-            PlayTrack(currentTrackIndex);
-        }
-
-        private void PlayTrack(int index)
-        {
-            if (index >= 0 && index < filePaths.Count)
+            if (outputDevice != null && outputDevice.PlaybackState == PlaybackState.Paused)
             {
-                string filePath = filePaths[index];
-
-                if (filePath.EndsWith(".mp4")) // Handle video playback
-                {
-                    PlayVideo(filePath);
-                    return;
-                }
-
-                if (outputDevice != null)
-                {
-                    outputDevice.Stop();
-                    outputDevice.Dispose();
-                }
-
-                outputDevice = new WaveOutEvent();
-                AudioFileReader reader = new AudioFileReader(filePath);
-
-                if (playlist.Count > index)
-                {
-                    playlist[index]?.Dispose();
-                    playlist[index] = reader;
-                }
-
-                outputDevice.Init(reader);
-                outputDevice.Play();
-
-                lblTrack.Text = "Playing: " + listBoxSongs.Items[index].ToString();
-                LoadAlbumArt(filePath);
+                outputDevice.Play(); // Resume playback instead of restarting
             }
-        }
-
-        private void PlayVideo(string filePath)
-        {
-            axWindowsMediaPlayer.URL = filePath;
-            axWindowsMediaPlayer.Ctlcontrols.play();
+            else
+            {
+                PlayTrack(currentTrackIndex); // Play from list if not paused
+            }
         }
 
         private void btnPause_Click(object sender, EventArgs e)
         {
             outputDevice?.Pause();
+            PauseVideo();
         }
 
         private void btnStop_Click(object sender, EventArgs e)
         {
             outputDevice?.Stop();
+            StopVideo();
+            StopAudio();
         }
 
         private void trackVolume_Scroll(object sender, EventArgs e)
@@ -131,21 +103,90 @@ namespace Music_App_for_Prelim
 
         private void btnNext_Click(object sender, EventArgs e)
         {
-            if (filePaths.Count == 0) return;
-            currentTrackIndex = (currentTrackIndex + 1) % filePaths.Count;
-            listBoxSongs.SelectedIndex = currentTrackIndex;
+            if (playlist.Count == 0) return;
+
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.Count; // Move to next song
+            PlayTrack(currentTrackIndex);
+
+            listBoxSongs.SelectedIndex = currentTrackIndex; // Update UI selection
         }
+
 
         private void btnPrevious_Click(object sender, EventArgs e)
         {
-            if (filePaths.Count == 0) return;
-            currentTrackIndex = (currentTrackIndex - 1 + filePaths.Count) % filePaths.Count;
-            listBoxSongs.SelectedIndex = currentTrackIndex;
+            if (playlist.Count == 0) return;
+
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.Count) % playlist.Count; // Move to previous song
+            PlayTrack(currentTrackIndex);
+
+            listBoxSongs.SelectedIndex = currentTrackIndex; // Update UI selection
         }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void PlayTrack(int index)
+        {
+            if (index >= 0 && index < filePaths.Count)
+            {
+                string filePath = filePaths[index];
+                currentTrackIndex = index; // Ensure track index is updated
+
+                if (filePath.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+                {
+                    StopAudio();
+                    axWindowsMediaPlayer.Visible = true;
+                    PlayVideo(filePath);
+                    return;
+                }
+
+                StopVideo();
+                axWindowsMediaPlayer.Visible = false;
+
+                if (outputDevice != null)
+                {
+                    outputDevice.Stop();
+                    outputDevice.Dispose();
+                }
+
+                outputDevice = new WaveOutEvent();
+                playlist[index] = new AudioFileReader(filePath);
+                outputDevice.Init(playlist[index]);
+                outputDevice.Play();
+
+                lblTrack.Text = "Playing: " + listBoxSongs.Items[index].ToString();
+                LoadAlbumArt(filePath);
+            }
+        }
+
+        private void StopAudio()
+        {
+            if (outputDevice != null)
+            {
+                outputDevice.Stop();
+                outputDevice.Dispose();
+                outputDevice = null;
+            }
+        }
+
+        private void PauseVideo()
+        {
+            axWindowsMediaPlayer.Ctlcontrols.pause();
+
+        }
+
+        private void StopVideo()
+        {
+            axWindowsMediaPlayer.Ctlcontrols.stop();
+            axWindowsMediaPlayer.URL = ""; // Clear video source
+        }
+
+        private void PlayVideo(string filePath)
+        {
+            axWindowsMediaPlayer.URL = filePath;
+            axWindowsMediaPlayer.Ctlcontrols.play();
         }
 
         private void LoadAlbumArt(string filePath)
@@ -180,9 +221,80 @@ namespace Music_App_for_Prelim
             }
         }
 
+        private void DeleteSelectedSong()
+        {
+            int index = listBoxSongs.SelectedIndex;
+            if (index >= 0)
+            {
+                listBoxSongs.Items.RemoveAt(index);
+                filePaths.RemoveAt(index);
+                playlist[index]?.Dispose();
+                playlist.RemoveAt(index);
+
+                if (index < listBoxSongs.Items.Count)
+                    listBoxSongs.SelectedIndex = index;
+
+                else if (listBoxSongs.Items.Count > 0)
+                    listBoxSongs.SelectedIndex = listBoxSongs.Items.Count - 1;
+            }
+        }
+
+        private void MoveUp()
+        {
+            int index = listBoxSongs.SelectedIndex;
+            if (index > 0)
+            {
+                SwapItems(index, index - 1);
+                listBoxSongs.SelectedIndex = index - 1;
+            }
+        }
+
+        private void MoveDown()
+        {
+            int index = listBoxSongs.SelectedIndex;
+            if (index < listBoxSongs.Items.Count - 1)
+            {
+                SwapItems(index, index + 1);
+                listBoxSongs.SelectedIndex = index + 1;
+            }
+        }
+
+        private void SwapItems(int index1, int index2)
+        {
+            // Swap listBox items
+            object tempItem = listBoxSongs.Items[index1];
+            listBoxSongs.Items[index1] = listBoxSongs.Items[index2];
+            listBoxSongs.Items[index2] = tempItem;
+
+            // Swap file paths
+            string tempPath = filePaths[index1];
+            filePaths[index1] = filePaths[index2];
+            filePaths[index2] = tempPath;
+
+            // Swap playlist entries
+            AudioFileReader tempReader = playlist[index1];
+            playlist[index1] = playlist[index2];
+            playlist[index2] = tempReader;
+        }
+
         private string TrimText(string text, int maxLength)
         {
             return text.Length > maxLength ? text.Substring(0, maxLength) + "..." : text;
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DeleteSelectedSong();
+        }
+
+        private void moveUpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MoveUp();
+        }
+
+        private void moveDownToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MoveDown();
         }
     }
 }

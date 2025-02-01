@@ -36,16 +36,13 @@
             toolStripSeparator2 = new ToolStripSeparator();
             exitToolStripMenuItem = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
-            contentsToolStripMenuItem = new ToolStripMenuItem();
-            indexToolStripMenuItem = new ToolStripMenuItem();
-            searchToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator5 = new ToolStripSeparator();
             aboutToolStripMenuItem = new ToolStripMenuItem();
             lblTrack = new Label();
             trackVolume = new TrackBar();
             btnLoad = new Button();
             listBoxSongs = new ListBox();
-            contextMenuStrip1 = new ContextMenuStrip(components);
+            listBoxMenuStrip = new ContextMenuStrip(components);
             nextToolStripMenuItem = new ToolStripMenuItem();
             previousToolStripMenuItem = new ToolStripMenuItem();
             deleteToolStripMenuItem = new ToolStripMenuItem();
@@ -58,9 +55,10 @@
             btnPause = new Button();
             btnPlay = new Button();
             axWindowsMediaPlayer = new AxWMPLib.AxWindowsMediaPlayer();
+            VideoContextStrip = new ContextMenuStrip(components);
             mainMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)trackVolume).BeginInit();
-            contextMenuStrip1.SuspendLayout();
+            listBoxMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBoxAlbumArt).BeginInit();
             ((System.ComponentModel.ISupportInitialize)axWindowsMediaPlayer).BeginInit();
             SuspendLayout();
@@ -71,7 +69,7 @@
             mainMenu.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, helpToolStripMenuItem });
             mainMenu.Location = new Point(0, 0);
             mainMenu.Name = "mainMenu";
-            mainMenu.Size = new Size(1135, 28);
+            mainMenu.Size = new Size(1102, 28);
             mainMenu.TabIndex = 0;
             mainMenu.Text = "menuStrip1";
             // 
@@ -106,38 +104,20 @@
             // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { contentsToolStripMenuItem, indexToolStripMenuItem, searchToolStripMenuItem, toolStripSeparator5, aboutToolStripMenuItem });
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { toolStripSeparator5, aboutToolStripMenuItem });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(55, 24);
             helpToolStripMenuItem.Text = "&Help";
             // 
-            // contentsToolStripMenuItem
-            // 
-            contentsToolStripMenuItem.Name = "contentsToolStripMenuItem";
-            contentsToolStripMenuItem.Size = new Size(150, 26);
-            contentsToolStripMenuItem.Text = "&Contents";
-            // 
-            // indexToolStripMenuItem
-            // 
-            indexToolStripMenuItem.Name = "indexToolStripMenuItem";
-            indexToolStripMenuItem.Size = new Size(150, 26);
-            indexToolStripMenuItem.Text = "&Index";
-            // 
-            // searchToolStripMenuItem
-            // 
-            searchToolStripMenuItem.Name = "searchToolStripMenuItem";
-            searchToolStripMenuItem.Size = new Size(150, 26);
-            searchToolStripMenuItem.Text = "&Search";
-            // 
             // toolStripSeparator5
             // 
             toolStripSeparator5.Name = "toolStripSeparator5";
-            toolStripSeparator5.Size = new Size(147, 6);
+            toolStripSeparator5.Size = new Size(139, 6);
             // 
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(150, 26);
+            aboutToolStripMenuItem.Size = new Size(142, 26);
             aboutToolStripMenuItem.Text = "&About...";
             // 
             // lblTrack
@@ -145,7 +125,7 @@
             lblTrack.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             lblTrack.AutoSize = true;
             lblTrack.Font = new Font("Segoe UI Semibold", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTrack.Location = new Point(336, 289);
+            lblTrack.Location = new Point(336, 440);
             lblTrack.Name = "lblTrack";
             lblTrack.Size = new Size(248, 41);
             lblTrack.TabIndex = 1;
@@ -153,10 +133,10 @@
             // 
             // trackVolume
             // 
-            trackVolume.Location = new Point(64, 512);
+            trackVolume.Location = new Point(65, 588);
             trackVolume.Maximum = 100;
             trackVolume.Name = "trackVolume";
-            trackVolume.Size = new Size(186, 56);
+            trackVolume.Size = new Size(191, 56);
             trackVolume.TabIndex = 2;
             trackVolume.Value = 50;
             trackVolume.Scroll += trackVolume_Scroll;
@@ -164,9 +144,9 @@
             // btnLoad
             // 
             btnLoad.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnLoad.Location = new Point(64, 440);
+            btnLoad.Location = new Point(26, 519);
             btnLoad.Name = "btnLoad";
-            btnLoad.Size = new Size(186, 51);
+            btnLoad.Size = new Size(275, 51);
             btnLoad.TabIndex = 3;
             btnLoad.Text = "Load Music ";
             btnLoad.UseVisualStyleBackColor = true;
@@ -174,20 +154,20 @@
             // 
             // listBoxSongs
             // 
-            listBoxSongs.ContextMenuStrip = contextMenuStrip1;
+            listBoxSongs.ContextMenuStrip = listBoxMenuStrip;
             listBoxSongs.FormattingEnabled = true;
             listBoxSongs.Location = new Point(26, 57);
             listBoxSongs.Name = "listBoxSongs";
-            listBoxSongs.Size = new Size(275, 364);
+            listBoxSongs.Size = new Size(275, 444);
             listBoxSongs.TabIndex = 8;
             listBoxSongs.SelectedIndexChanged += listBoxSongs_SelectedIndexChanged;
             // 
-            // contextMenuStrip1
+            // listBoxMenuStrip
             // 
-            contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { nextToolStripMenuItem, previousToolStripMenuItem, deleteToolStripMenuItem, moveUpToolStripMenuItem, moveDownToolStripMenuItem });
-            contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(159, 124);
+            listBoxMenuStrip.ImageScalingSize = new Size(20, 20);
+            listBoxMenuStrip.Items.AddRange(new ToolStripItem[] { nextToolStripMenuItem, previousToolStripMenuItem, deleteToolStripMenuItem, moveUpToolStripMenuItem, moveDownToolStripMenuItem });
+            listBoxMenuStrip.Name = "contextMenuStrip1";
+            listBoxMenuStrip.Size = new Size(159, 124);
             // 
             // nextToolStripMenuItem
             // 
@@ -208,32 +188,36 @@
             deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
             deleteToolStripMenuItem.Size = new Size(158, 24);
             deleteToolStripMenuItem.Text = "Delete";
+            deleteToolStripMenuItem.Click += deleteToolStripMenuItem_Click;
             // 
             // moveUpToolStripMenuItem
             // 
             moveUpToolStripMenuItem.Name = "moveUpToolStripMenuItem";
             moveUpToolStripMenuItem.Size = new Size(158, 24);
             moveUpToolStripMenuItem.Text = "Move up";
+            moveUpToolStripMenuItem.Click += moveUpToolStripMenuItem_Click;
             // 
             // moveDownToolStripMenuItem
             // 
             moveDownToolStripMenuItem.Name = "moveDownToolStripMenuItem";
             moveDownToolStripMenuItem.Size = new Size(158, 24);
             moveDownToolStripMenuItem.Text = "Move Down";
+            moveDownToolStripMenuItem.Click += moveDownToolStripMenuItem_Click;
             // 
             // pictureBoxAlbumArt
             // 
+            pictureBoxAlbumArt.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pictureBoxAlbumArt.Image = Properties.Resources.default_album;
-            pictureBoxAlbumArt.Location = new Point(336, 57);
+            pictureBoxAlbumArt.Location = new Point(336, 59);
             pictureBoxAlbumArt.Name = "pictureBoxAlbumArt";
-            pictureBoxAlbumArt.Size = new Size(387, 217);
+            pictureBoxAlbumArt.Size = new Size(742, 368);
             pictureBoxAlbumArt.TabIndex = 11;
             pictureBoxAlbumArt.TabStop = false;
             // 
             // btnNext
             // 
             btnNext.Font = new Font("Microsoft Sans Serif", 13.8F);
-            btnNext.Location = new Point(553, 427);
+            btnNext.Location = new Point(720, 588);
             btnNext.Name = "btnNext";
             btnNext.Size = new Size(94, 44);
             btnNext.TabIndex = 20;
@@ -244,7 +228,7 @@
             // btnPrevious
             // 
             btnPrevious.Font = new Font("Microsoft Sans Serif", 13.8F);
-            btnPrevious.Location = new Point(418, 427);
+            btnPrevious.Location = new Point(589, 588);
             btnPrevious.Name = "btnPrevious";
             btnPrevious.Size = new Size(94, 44);
             btnPrevious.TabIndex = 19;
@@ -255,7 +239,7 @@
             // btnStop
             // 
             btnStop.Font = new Font("Microsoft Sans Serif", 13.8F);
-            btnStop.Location = new Point(616, 364);
+            btnStop.Location = new Point(785, 525);
             btnStop.Name = "btnStop";
             btnStop.Size = new Size(94, 44);
             btnStop.TabIndex = 18;
@@ -266,7 +250,7 @@
             // btnPause
             // 
             btnPause.Font = new Font("Microsoft Sans Serif", 13.8F);
-            btnPause.Location = new Point(493, 364);
+            btnPause.Location = new Point(662, 525);
             btnPause.Name = "btnPause";
             btnPause.Size = new Size(94, 44);
             btnPause.TabIndex = 17;
@@ -277,7 +261,7 @@
             // btnPlay
             // 
             btnPlay.Font = new Font("Microsoft Sans Serif", 13.8F);
-            btnPlay.Location = new Point(378, 364);
+            btnPlay.Location = new Point(547, 525);
             btnPlay.Name = "btnPlay";
             btnPlay.Size = new Size(94, 44);
             btnPlay.TabIndex = 16;
@@ -287,18 +271,26 @@
             // 
             // axWindowsMediaPlayer
             // 
+            axWindowsMediaPlayer.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            axWindowsMediaPlayer.ContextMenuStrip = VideoContextStrip;
             axWindowsMediaPlayer.Enabled = true;
-            axWindowsMediaPlayer.Location = new Point(767, 57);
+            axWindowsMediaPlayer.Location = new Point(336, 59);
             axWindowsMediaPlayer.Name = "axWindowsMediaPlayer";
             axWindowsMediaPlayer.OcxState = (AxHost.State)resources.GetObject("axWindowsMediaPlayer.OcxState");
-            axWindowsMediaPlayer.Size = new Size(345, 219);
+            axWindowsMediaPlayer.Size = new Size(742, 512);
             axWindowsMediaPlayer.TabIndex = 21;
+            // 
+            // VideoContextStrip
+            // 
+            VideoContextStrip.ImageScalingSize = new Size(20, 20);
+            VideoContextStrip.Name = "VideoContextStrip";
+            VideoContextStrip.Size = new Size(61, 4);
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1135, 618);
+            ClientSize = new Size(1102, 683);
             Controls.Add(axWindowsMediaPlayer);
             Controls.Add(btnNext);
             Controls.Add(btnPrevious);
@@ -317,7 +309,7 @@
             mainMenu.ResumeLayout(false);
             mainMenu.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)trackVolume).EndInit();
-            contextMenuStrip1.ResumeLayout(false);
+            listBoxMenuStrip.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBoxAlbumArt).EndInit();
             ((System.ComponentModel.ISupportInitialize)axWindowsMediaPlayer).EndInit();
             ResumeLayout(false);
@@ -332,16 +324,13 @@
         private ToolStripSeparator toolStripSeparator2;
         private ToolStripMenuItem exitToolStripMenuItem;
         private ToolStripMenuItem helpToolStripMenuItem;
-        private ToolStripMenuItem contentsToolStripMenuItem;
-        private ToolStripMenuItem indexToolStripMenuItem;
-        private ToolStripMenuItem searchToolStripMenuItem;
         private ToolStripSeparator toolStripSeparator5;
         private ToolStripMenuItem aboutToolStripMenuItem;
         private Label lblTrack;
         private TrackBar trackVolume;
         private Button btnLoad;
         private ListBox listBoxSongs;
-        private ContextMenuStrip contextMenuStrip1;
+        private ContextMenuStrip listBoxMenuStrip;
         private ToolStripMenuItem nextToolStripMenuItem;
         private ToolStripMenuItem previousToolStripMenuItem;
         private ToolStripMenuItem deleteToolStripMenuItem;
@@ -354,5 +343,6 @@
         private ToolStripMenuItem moveUpToolStripMenuItem;
         private ToolStripMenuItem moveDownToolStripMenuItem;
         private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer;
+        private ContextMenuStrip VideoContextStrip;
     }
 }
