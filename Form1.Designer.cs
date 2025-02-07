@@ -54,6 +54,7 @@
             axWindowsMediaPlayer = new AxWMPLib.AxWindowsMediaPlayer();
             groupBox2 = new GroupBox();
             btnLoad = new Button();
+            lblVolumeLevel = new Label();
             trackVolume = new TrackBar();
             label1 = new Label();
             tableLayoutPanel1 = new TableLayoutPanel();
@@ -99,14 +100,14 @@
             openToolStripMenuItem.ImageTransparentColor = Color.Magenta;
             openToolStripMenuItem.Name = "openToolStripMenuItem";
             openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
-            openToolStripMenuItem.Size = new Size(224, 26);
+            openToolStripMenuItem.Size = new Size(220, 26);
             openToolStripMenuItem.Text = "&Load Music";
             openToolStripMenuItem.Click += btnLoad_Click;
             // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(221, 6);
+            toolStripSeparator2.Size = new Size(217, 6);
             // 
             // loadAllMusicToolStripMenuItem
             // 
@@ -114,7 +115,7 @@
             loadAllMusicToolStripMenuItem.CheckState = CheckState.Checked;
             loadAllMusicToolStripMenuItem.Image = Properties.Resources._4973292;
             loadAllMusicToolStripMenuItem.Name = "loadAllMusicToolStripMenuItem";
-            loadAllMusicToolStripMenuItem.Size = new Size(224, 26);
+            loadAllMusicToolStripMenuItem.Size = new Size(220, 26);
             loadAllMusicToolStripMenuItem.Text = "Load All Music";
             loadAllMusicToolStripMenuItem.Click += loadAllMusicToolStripMenuItem_Click;
             // 
@@ -122,7 +123,7 @@
             // 
             exitToolStripMenuItem.Image = Properties.Resources.images;
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(224, 26);
+            exitToolStripMenuItem.Size = new Size(220, 26);
             exitToolStripMenuItem.Text = "E&xit";
             exitToolStripMenuItem.Click += btnExit_Click;
             // 
@@ -264,6 +265,7 @@
             // groupBox2
             // 
             groupBox2.Controls.Add(btnLoad);
+            groupBox2.Controls.Add(lblVolumeLevel);
             groupBox2.Controls.Add(trackVolume);
             groupBox2.Location = new Point(26, 629);
             groupBox2.Name = "groupBox2";
@@ -282,14 +284,23 @@
             btnLoad.UseVisualStyleBackColor = true;
             btnLoad.Click += btnLoad_Click;
             // 
+            // lblVolumeLevel
+            // 
+            lblVolumeLevel.AutoSize = true;
+            lblVolumeLevel.Location = new Point(208, 92);
+            lblVolumeLevel.Name = "lblVolumeLevel";
+            lblVolumeLevel.Size = new Size(45, 20);
+            lblVolumeLevel.TabIndex = 31;
+            lblVolumeLevel.Text = "100%";
+            // 
             // trackVolume
             // 
-            trackVolume.Location = new Point(41, 83);
+            trackVolume.Location = new Point(11, 83);
             trackVolume.Maximum = 100;
             trackVolume.Name = "trackVolume";
             trackVolume.Size = new Size(191, 56);
             trackVolume.TabIndex = 4;
-            trackVolume.Value = 50;
+            trackVolume.Value = 100;
             trackVolume.Scroll += trackVolume_Scroll;
             // 
             // label1
@@ -440,11 +451,13 @@
             Controls.Add(mainMenu);
             Controls.Add(tableLayoutPanel1);
             Controls.Add(trackBarSeek);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = mainMenu;
+            MaximizeBox = false;
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "-[9k, dewqwe'";
+            Text = "Spotify Pirated";
             mainMenu.ResumeLayout(false);
             mainMenu.PerformLayout();
             listBoxMenuStrip.ResumeLayout(false);
@@ -497,5 +510,6 @@
         private Label lblCurrentTime;
         private Label lblTotalTime;
         private System.Windows.Forms.Timer timer1;
+        private Label lblVolumeLevel;
     }
 }

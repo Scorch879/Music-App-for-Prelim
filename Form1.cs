@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -97,7 +97,9 @@ namespace Music_App_for_Prelim
 
         private void trackVolume_Scroll(object sender, EventArgs e)
         {
-            if (outputDevice != null && playlist.Count > 0)
+            lblVolumeLevel.Text = $"{trackVolume.Value}%";
+
+            if (outputDevice != null && outputDevice.PlaybackState != PlaybackState.Stopped)
             {
                 playlist[currentTrackIndex].Volume = trackVolume.Value / 100f;
             }
@@ -304,20 +306,31 @@ namespace Music_App_for_Prelim
 
         private void TrackTimer_Tick(object sender, EventArgs e)
         {
-            if (outputDevice != null && playlist.Count > currentTrackIndex)
+            if (currentTrackIndex >= 0 && currentTrackIndex < playlist.Count) 
             {
-                trackBarSeek.Value = (int)playlist[currentTrackIndex].CurrentTime.TotalSeconds;
+                if (playlist[currentTrackIndex] != null)
+                {
+                    lblCurrentTime.Text = $"{playlist[currentTrackIndex].CurrentTime:mm\\:ss}";
+                }
             }
         }
 
         private void currentTrackTimer_Tick(object sender, EventArgs e)
         {
-            if (playlist.Count > currentTrackIndex && playlist[currentTrackIndex] != null)
-            {
-                var currentTime = playlist[currentTrackIndex].CurrentTime;
-                lblCurrentTime.Text = FormatTime(currentTime);
-                trackBarSeek.Value = (int)currentTime.TotalSeconds;
-            }
+            if (playlist.Count == 0 || currentTrackIndex < 0 || currentTrackIndex >= playlist.Count)
+                return; // Exit if playlist is empty or index is invalid
+
+            var currentTrack = playlist[currentTrackIndex];
+            if (currentTrack == null)
+                return; // Exit if current track is null
+
+            var currentTime = currentTrack.CurrentTime;
+            lblCurrentTime.Text = FormatTime(currentTime);
+
+            if (trackBarSeek.Maximum != (int)currentTrack.TotalTime.TotalSeconds)
+                trackBarSeek.Maximum = (int)currentTrack.TotalTime.TotalSeconds; // Update max duration
+
+            trackBarSeek.Value = (int)currentTime.TotalSeconds;
         }
 
         private string FormatTime(TimeSpan time)
