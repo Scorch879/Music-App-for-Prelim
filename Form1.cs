@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
-using System.Drawing;
-using NAudio.Wave;
-using TagLib;
+﻿using NAudio.Wave;
 
 namespace Music_App_for_Prelim
 {
