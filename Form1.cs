@@ -7,7 +7,6 @@ using System.Drawing;
 using NAudio.Wave;
 using TagLib;
 
-
 namespace Music_App_for_Prelim
 {
     public partial class Form1 : Form
@@ -16,13 +15,19 @@ namespace Music_App_for_Prelim
         private List<string> filePaths = new List<string>(); // Store file paths
         private List<AudioFileReader> playlist = new List<AudioFileReader>();
         private int currentTrackIndex = 0;
+        private System.Windows.Forms.Timer trackTimer;
 
         public Form1()
         {
             InitializeComponent();
             listBoxSongs.HorizontalScrollbar = true;
-            axWindowsMediaPlayer.Visible = false; 
-            pictureBoxAlbumArt.SizeMode = PictureBoxSizeMode.Zoom; 
+            axWindowsMediaPlayer.Visible = false;
+            pictureBoxAlbumArt.SizeMode = PictureBoxSizeMode.Zoom;
+
+            //For timer things
+            trackTimer = new System.Windows.Forms.Timer();
+            trackTimer.Interval = 1000; //updates every second
+            trackTimer.Tick += TrackTimer_Tick;
 
         }
 
@@ -39,7 +44,7 @@ namespace Music_App_for_Prelim
                 foreach (string file in openFileDialog.FileNames)
                 {
                     string fileName = Path.GetFileName(file);
-                
+
 
                     if (!filePaths.Contains(file))
                     {
@@ -85,6 +90,9 @@ namespace Music_App_for_Prelim
             outputDevice?.Stop();
             StopVideo();
             StopAudio();
+            trackTimer.Stop();
+            lblCurrentTime.Text = "00:00";
+            trackBarSeek.Value = 0;
         }
 
         private void trackVolume_Scroll(object sender, EventArgs e)
@@ -110,7 +118,6 @@ namespace Music_App_for_Prelim
 
             listBoxSongs.SelectedIndex = currentTrackIndex; // Update UI selection
         }
-
 
         private void btnPrevious_Click(object sender, EventArgs e)
         {
@@ -158,6 +165,25 @@ namespace Music_App_for_Prelim
 
                 lblTrack.Text = "Playing: " + listBoxSongs.Items[index].ToString();
                 LoadAlbumArt(filePath);
+
+                // Set total song duration label
+                lblTotalTime.Text = FormatTime(playlist[index].TotalTime);
+                lblCurrentTime.Text = "00:00"; // Reset at start
+
+                // Set max value of the seeker bar to song duration in seconds
+                trackBarSeek.Maximum = (int)playlist[index].TotalTime.TotalSeconds;
+                trackBarSeek.Value = 0;
+
+                // Start updating the seeker bar
+                trackTimer.Start();
+            }
+        }
+
+        private void trackBarSeek_Scroll(object sender, EventArgs e)
+        {
+            if (outputDevice != null && playlist.Count > currentTrackIndex)
+            {
+                playlist[currentTrackIndex].CurrentTime = TimeSpan.FromSeconds(trackBarSeek.Value);
             }
         }
 
@@ -174,7 +200,6 @@ namespace Music_App_for_Prelim
         private void PauseVideo()
         {
             axWindowsMediaPlayer.Ctlcontrols.pause();
-
         }
 
         private void StopVideo()
@@ -277,9 +302,27 @@ namespace Music_App_for_Prelim
             playlist[index2] = tempReader;
         }
 
-        private string TrimText(string text, int maxLength)
+        private void TrackTimer_Tick(object sender, EventArgs e)
         {
-            return text.Length > maxLength ? text.Substring(0, maxLength) + "..." : text;
+            if (outputDevice != null && playlist.Count > currentTrackIndex)
+            {
+                trackBarSeek.Value = (int)playlist[currentTrackIndex].CurrentTime.TotalSeconds;
+            }
+        }
+
+        private void currentTrackTimer_Tick(object sender, EventArgs e)
+        {
+            if (playlist.Count > currentTrackIndex && playlist[currentTrackIndex] != null)
+            {
+                var currentTime = playlist[currentTrackIndex].CurrentTime;
+                lblCurrentTime.Text = FormatTime(currentTime);
+                trackBarSeek.Value = (int)currentTime.TotalSeconds;
+            }
+        }
+
+        private string FormatTime(TimeSpan time)
+        {
+            return $"{(int)time.TotalMinutes:D2}:{time.Seconds:D2}";
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -295,6 +338,97 @@ namespace Music_App_for_Prelim
         private void moveDownToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MoveDown();
+        }
+
+        private void loadAllMusicToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LoadAllMusic();
+        }
+
+        private async void LoadAllMusic()
+        {
+            ProgressForm progressForm = new ProgressForm();
+            progressForm.Show();
+
+            List<string> directories = new List<string>
+            {
+                Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Downloads"
+            };
+
+            List<string> musicFiles = new List<string>();
+
+            int totalFiles = 0;
+            foreach (string dir in directories)
+            {
+                if (Directory.Exists(dir))
+                {
+                    totalFiles += Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
+                                           .Count(file => file.EndsWith(".mp3") ||
+                                                          file.EndsWith(".wav") ||
+                                                          file.EndsWith(".wma") ||
+                                                          file.EndsWith(".aac") ||
+                                                          file.EndsWith(".m4a"));
+                }
+            }
+
+            if (totalFiles == 0)
+            {
+                progressForm.Close();
+                MessageBox.Show("No music files found!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            progressForm.UpdateProgress(0, "Scanning for music...");
+
+            int processedFiles = 0;
+
+            foreach (string dir in directories)
+            {
+                if (Directory.Exists(dir))
+                {
+                    var files = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
+                                         .Where(file => file.EndsWith(".mp3") ||
+                                                        file.EndsWith(".wav") ||
+                                                        file.EndsWith(".wma") ||
+                                                        file.EndsWith(".aac") ||
+                                                        file.EndsWith(".m4a"))
+                                         .ToList();
+
+                    foreach (string file in files)
+                    {
+                        if (progressForm.IsCanceled)
+                        {
+                            progressForm.Close();
+                            MessageBox.Show("Music loading canceled!", "Canceled", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        string fileName = Path.GetFileName(file);
+                        if (!listBoxSongs.Items.Contains(fileName))
+                        {
+                            playlist.Add(new AudioFileReader(file));
+                            listBoxSongs.Items.Add(fileName);
+                            filePaths.Add(file);
+                        }
+
+                        processedFiles++;
+                        int progress = (int)((processedFiles / (double)totalFiles) * 100);
+                        progressForm.UpdateProgress(progress, $"Loading {processedFiles}/{totalFiles} songs...");
+
+                        await Task.Delay(50); // Simulate delay for UI update
+                    }
+                }
+            }
+
+            progressForm.Close();
+            MessageBox.Show("Music loading complete!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
